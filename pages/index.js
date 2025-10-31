@@ -231,27 +231,15 @@ ${step.latex}
           <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
             <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
               <h2 className="text-2xl font-bold text-gray-900">Enter Your Equation</h2>
-              <div className="flex gap-3">
-                <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
-                  <button
-                    onClick={() => setMode('general')}
-                    className={`px-3 py-1 rounded-lg text-sm font-medium ${mode==='general' ? 'bg-white shadow border border-gray-200' : 'text-gray-600'}`}
-                  >General</button>
-                  <button
-                    onClick={() => setMode('schrodinger')}
-                    className={`px-3 py-1 rounded-lg text-sm font-medium ${mode==='schrodinger' ? 'bg-white shadow border border-gray-200' : 'text-gray-600'}`}
-                  >Schrödinger</button>
-                </div>
-                <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
-                  <button
-                    onClick={() => setProvider('groq')}
-                    className={`px-3 py-1 rounded-lg text-sm font-medium ${provider==='groq' ? 'bg-white shadow border border-gray-200' : 'text-gray-600'}`}
-                  >Groq</button>
-                  <button
-                    onClick={() => setProvider('openrouter')}
-                    className={`px-3 py-1 rounded-lg text-sm font-medium ${provider==='openrouter' ? 'bg-white shadow border border-gray-200' : 'text-gray-600'}`}
-                  >OpenRouter</button>
-                </div>
+              <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
+                <button
+                  onClick={() => setMode('general')}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium ${mode==='general' ? 'bg-white shadow border border-gray-200' : 'text-gray-600'}`}
+                >General</button>
+                <button
+                  onClick={() => setMode('schrodinger')}
+                  className={`px-3 py-1 rounded-lg text-sm font-medium ${mode==='schrodinger' ? 'bg-white shadow border border-gray-200' : 'text-gray-600'}`}
+                >Schrödinger</button>
               </div>
             </div>
             
@@ -270,17 +258,38 @@ ${step.latex}
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Variable
-                </label>
-                <input
-                  type="text"
-                  value={variable}
-                  onChange={(e) => setVariable(e.target.value)}
-                  placeholder="x"
-                  className="w-32 px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-lg font-mono"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    Variable
+                  </label>
+                  <input
+                    type="text"
+                    value={variable}
+                    onChange={(e) => setVariable(e.target.value)}
+                    placeholder="x"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-lg font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    LLM Provider
+                  </label>
+                  <select
+                    value={provider}
+                    onChange={(e) => setProvider(e.target.value)}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-lg bg-white"
+                  >
+                    <option value="groq">Groq (Fast & Efficient)</option>
+                    <option value="openrouter">OpenRouter (Advanced Models)</option>
+                  </select>
+                  <p className="mt-1 text-xs text-gray-500">
+                    {provider === 'groq'
+                      ? 'Fast responses, good for standard problems'
+                      : 'Advanced models (GPT-4, Claude), best for complex derivations'}
+                  </p>
+                </div>
               </div>
 
               {mode === 'schrodinger' && (
