@@ -8,6 +8,7 @@ export default function Home() {
   const [mode, setMode] = useState('general'); // 'general' | 'schrodinger'
   // Schrödinger context
   const [schType, setSchType] = useState('time-independent');
+  const [requestText, setRequestText] = useState('');
   const [potential, setPotential] = useState('');
   const [domain, setDomain] = useState('');
   const [boundary, setBoundary] = useState('');
@@ -58,8 +59,8 @@ export default function Home() {
   };
 
   const solveSchrodinger = async () => {
-    if (!equation.trim()) {
-      setError('Please enter an equation');
+    if (!equation.trim() && !requestText.trim()) {
+      setError('Provide either an equation/Hamiltonian or a natural-language request.');
       return;
     }
 
@@ -87,6 +88,8 @@ export default function Home() {
           context,
           maxIterations: Number(maxIterations) || 4,
           temperature: Number(temperature) || 0.1,
+          detailLevel: 'exhaustive',
+          request: requestText || undefined,
         }),
       });
 
@@ -194,7 +197,8 @@ ${step.latex}
     { label: 'Linear', eq: '2*x + 5 = 13' },
     { label: 'Quadratic', eq: 'x^2 - 5*x + 6 = 0' },
     { label: 'Hamiltonian', eq: 'H = p^2/(2m) + kx^2/2' },
-    { label: 'Cubic', eq: 'x^3 - 6x^2 + 11x - 6 = 0' }
+    { label: 'Cubic', eq: 'x^3 - 6x^2 + 11x - 6 = 0' },
+    { label: 'PDM Quartic (NL)', eq: '', req: 'Determine the eigenvalues and eigenfunctions of the quartic oscillator with exponentially decreasing mass m(x)=m0(1+e^{-g x}).' }
   ];
 
   return (
@@ -265,6 +269,11 @@ ${step.latex}
 
               {mode === 'schrodinger' && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Describe your problem (optional)</label>
+                    <textarea value={requestText} onChange={(e)=>setRequestText(e.target.value)} placeholder="e.g., Determine the eigenvalues and eigenfunctions of the quartic oscillator with exponentially decreasing mass m(x)=m0(1+e^{-g x})." className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-sm min-h-[90px]" />
+                    <p className="mt-1 text-xs text-gray-500">If provided, the solver will infer equation, potential, mass profile, and task from your description.</p>
+                  </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Type</label>
                     <select
@@ -317,7 +326,7 @@ ${step.latex}
                   {examples.map((ex) => (
                     <button
                       key={ex.label}
-                      onClick={() => setEquation(ex.eq)}
+                      onClick={() => { setEquation(ex.eq || ''); if (ex.req) setRequestText(ex.req); }}
                       className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
                     >
                       {ex.label}
