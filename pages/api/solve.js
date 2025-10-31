@@ -1,4 +1,5 @@
 import { solveSchrodingerIterative } from '../../lib/schrodinger/solver'
+import { callLLM } from '../../lib/llm/provider'
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -6,7 +7,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method Not Allowed' })
   }
 
-  const { equation, variable } = req.body || {}
+  const { equation, variable, provider = 'groq' } = req.body || {}
   if (!equation || !equation.trim()) {
     return res.status(400).json({ error: 'Missing equation' })
   }
@@ -22,6 +23,7 @@ export default async function handler(req, res) {
         context: {},
         maxIterations: 4,
         temperature: 0.1,
+        provider,
       })
       return res.status(200).json({
         type: 'hamiltonian',
@@ -42,43 +44,25 @@ export default async function handler(req, res) {
     }
   }
 
-  const apiKey = process.env.GROQ_API_KEY
-  if (!apiKey) {
-    return res.status(500).json({ error: 'Server misconfigured: GROQ_API_KEY not set' })
-  }
-  const model = process.env.GROQ_MODEL || 'openai/gpt-oss-20b'
-  const apiUrl = process.env.GROQ_API_URL || 'https://api.groq.com/openai/v1/chat/completions'
-
   try {
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are an expert mathematical solver. Solve equations step-by-step with extraordinary detail.\n- For cubic equations, explicitly use Cardano\'s method (depress the cubic, compute discriminant, derive casus irreducibilis handling).\n- For quartic, use Ferrari\'s method when symbolic solution is feasible.\n- For general polynomials: try factorization (rational root theorem, factoring by grouping), reduce to lower degrees if possible, and provide exact radicals when feasible; only mention numerical methods if exact form is provably not expressible with radicals.\n\nFor each solution, provide a JSON response with this EXACT structure:\n{\n  "type": "linear|quadratic|cubic|polynomial|hamiltonian|differential",\n  "steps": [\n    {\n      "step": 1,\n      "description": "Clear title",\n      "equation": "plain text equation",\n      "latex": "LaTeX formatted equation",\n      "explanation": "Detailed explanation of this step"\n    }\n  ],\n  "finalSolution": "plain text solution",\n  "finalSolutionLatex": "LaTeX formatted solution"\n}\n\nIMPORTANT: Return ONLY valid JSON, no other text.',
-          },
-          {
-            role: 'user',
-            content: `Solve this equation with detailed steps: ${equation}\nVariable: ${variable || 'x'}\n\nProvide the solution in the JSON format specified.`,
-          },
-        ],
-        temperature: 0.1,
-        max_tokens: 4000,
-      }),
+    const data = await callLLM({
+      provider,
+      messages: [
+        {
+          role: 'system',
+          content:
+            'You are an expert mathematical solver. Solve equations step-by-step with extraordinary detail.\n- For cubic equations, explicitly use Cardano\'s method (depress the cubic, compute discriminant, derive casus irreducibilis handling).\n- For quartic, use Ferrari\'s method when symbolic solution is feasible.\n- For general polynomials: try factorization (rational root theorem, factoring by grouping), reduce to lower degrees if possible, and provide exact radicals when feasible; only mention numerical methods if exact form is provably not expressible with radicals.\n\nFor each solution, provide a JSON response with this EXACT structure:\n{\n  "type": "linear|quadratic|cubic|polynomial|hamiltonian|differential",\n  "steps": [\n    {\n      "step": 1,\n      "description": "Clear title",\n      "equation": "plain text equation",\n      "latex": "LaTeX formatted equation",\n      "explanation": "Detailed explanation of this step"\n    }\n  ],\n  "finalSolution": "plain text solution",\n  "finalSolutionLatex": "LaTeX formatted solution"\n}\n\nIMPORTANT: Return ONLY valid JSON, no other text.',
+        },
+        {
+          role: 'user',
+          content: `Solve this equation with detailed steps: ${equation}\nVariable: ${variable || 'x'}\n\nProvide the solution in the JSON format specified.`,
+        },
+      ],
+      temperature: 0.1,
+      maxTokens: 4000,
+      responseFormat: { type: 'json_object' },
     })
 
-    if (!response.ok) {
-      return res.status(response.status).json({ error: `API error: ${response.status}` })
-    }
-
-    const data = await response.json()
     const content = data.choices?.[0]?.message?.content || ''
 
     let parsed
@@ -109,6 +93,6 @@ export default async function handler(req, res) {
     return res.status(200).json(parsed)
   } catch (e) {
     console.error('[api/solve] error', e)
-    return res.status(500).json({ error: 'Failed to contact Groq API' })
+    return res.status(500).json({ error: `Failed to contact ${provider === 'openrouter' ? 'OpenRouter' : 'Groq'} API: ${e.message}` })
   }
 }

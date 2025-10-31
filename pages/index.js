@@ -6,9 +6,11 @@ export default function Home() {
   const [equation, setEquation] = useState('');
   const [variable, setVariable] = useState('x');
   const [mode, setMode] = useState('general'); // 'general' | 'schrodinger'
+  const [provider, setProvider] = useState('groq'); // 'groq' | 'openrouter'
   // Schrödinger context
   const [schType, setSchType] = useState('time-independent');
   const [requestText, setRequestText] = useState('');
+  const [strategy, setStrategy] = useState('planner'); // 'planner' | 'baseline'
   const [potential, setPotential] = useState('');
   const [domain, setDomain] = useState('');
   const [boundary, setBoundary] = useState('');
@@ -40,7 +42,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ equation, variable }),
+        body: JSON.stringify({ equation, variable, provider }),
       });
 
       if (!response.ok) {
@@ -90,6 +92,8 @@ export default function Home() {
           temperature: Number(temperature) || 0.1,
           detailLevel: 'exhaustive',
           request: requestText || undefined,
+          strategy,
+          provider,
         }),
       });
 
@@ -204,7 +208,7 @@ ${step.latex}
   return (
     <>
       <Head>
-        <title>AI Equation Solver - Powered by Groq</title>
+        <title>AI Equation Solver - Powered by AI</title>
         <meta name="description" content="Solve equations with AI-powered extraordinary detail" />
       </Head>
 
@@ -217,7 +221,7 @@ ${step.latex}
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">AI Equation Solver</h1>
-                <p className="text-gray-600 text-sm">Powered by Groq AI - Extraordinary Detail & Consistency</p>
+                <p className="text-gray-600 text-sm">Powered by {provider === 'groq' ? 'Groq AI' : 'OpenRouter'} - Extraordinary Detail & Consistency</p>
               </div>
             </div>
           </div>
@@ -225,17 +229,29 @@ ${step.latex}
 
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
               <h2 className="text-2xl font-bold text-gray-900">Enter Your Equation</h2>
-              <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
-                <button
-                  onClick={() => setMode('general')}
-                  className={`px-3 py-1 rounded-lg text-sm font-medium ${mode==='general' ? 'bg-white shadow border border-gray-200' : 'text-gray-600'}`}
-                >General</button>
-                <button
-                  onClick={() => setMode('schrodinger')}
-                  className={`px-3 py-1 rounded-lg text-sm font-medium ${mode==='schrodinger' ? 'bg-white shadow border border-gray-200' : 'text-gray-600'}`}
-                >Schrödinger</button>
+              <div className="flex gap-3">
+                <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
+                  <button
+                    onClick={() => setMode('general')}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium ${mode==='general' ? 'bg-white shadow border border-gray-200' : 'text-gray-600'}`}
+                  >General</button>
+                  <button
+                    onClick={() => setMode('schrodinger')}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium ${mode==='schrodinger' ? 'bg-white shadow border border-gray-200' : 'text-gray-600'}`}
+                  >Schrödinger</button>
+                </div>
+                <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
+                  <button
+                    onClick={() => setProvider('groq')}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium ${provider==='groq' ? 'bg-white shadow border border-gray-200' : 'text-gray-600'}`}
+                  >Groq</button>
+                  <button
+                    onClick={() => setProvider('openrouter')}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium ${provider==='openrouter' ? 'bg-white shadow border border-gray-200' : 'text-gray-600'}`}
+                  >OpenRouter</button>
+                </div>
               </div>
             </div>
             
@@ -273,6 +289,17 @@ ${step.latex}
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Describe your problem (optional)</label>
                     <textarea value={requestText} onChange={(e)=>setRequestText(e.target.value)} placeholder="e.g., Determine the eigenvalues and eigenfunctions of the quartic oscillator with exponentially decreasing mass m(x)=m0(1+e^{-g x})." className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-sm min-h-[90px]" />
                     <p className="mt-1 text-xs text-gray-500">If provided, the solver will infer equation, potential, mass profile, and task from your description.</p>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Strategy</label>
+                    <select
+                      value={strategy}
+                      onChange={(e) => setStrategy(e.target.value)}
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-sm"
+                    >
+                      <option value="planner">Planner (structured, multi-step)</option>
+                      <option value="baseline">Baseline (direct iterative)</option>
+                    </select>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Type</label>
