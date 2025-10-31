@@ -1,0 +1,15 @@
+{
+  "equation": "- (hbar^2 / 2m) d^2 psi/dx^2 + 1/2 m omega^2 x^2 psi = E psi",
+  "variable": "x",
+  "maxIterations": 2,
+  "temperature": 0.1,
+  "context": {
+    "type": "time-independent",
+    "potential": "Harmonic oscillator V(x)=1/2 m omega^2 x^2",
+    "domain": "x in (-inf, inf)",
+    "boundary": "psi -> 0 as |x| -> inf",
+    "equationLatex": "-\\frac{\\hbar^2}{2m} \\frac{d^2\\psi}{dx^2} + \\frac{1}{2} m \\omega^2 x^2 \\psi = E \\psi",
+    "assumptions": ["Non-relativistic", "Bound states"],
+    "notation": ["\\psi(x): wavefunction", "E: energy eigenvalue"]
+  }
+}
