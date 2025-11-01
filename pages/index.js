@@ -6,7 +6,7 @@ export default function Home() {
   const [equation, setEquation] = useState('');
   const [variable, setVariable] = useState('x');
   const [mode, setMode] = useState('general'); // 'general' | 'schrodinger'
-  const [provider, setProvider] = useState('groq'); // 'groq' | 'openrouter'
+  const [provider, setProvider] = useState('nvidia'); // Default: NVIDIA NIM
   // Schrödinger context
   const [schType, setSchType] = useState('time-independent');
   const [requestText, setRequestText] = useState('');
@@ -198,11 +198,11 @@ ${step.latex}
   };
 
   const examples = [
-    { label: 'Linear', eq: '2*x + 5 = 13' },
-    { label: 'Quadratic', eq: 'x^2 - 5*x + 6 = 0' },
-    { label: 'Hamiltonian', eq: 'H = p^2/(2m) + kx^2/2' },
-    { label: 'Cubic', eq: 'x^3 - 6x^2 + 11x - 6 = 0' },
-    { label: 'PDM Quartic (NL)', eq: '', req: 'Determine the eigenvalues and eigenfunctions of the quartic oscillator with exponentially decreasing mass m(x)=m0(1+e^{-g x}).' }
+    { label: 'Linear', eq: '2*x + 5 = 13', mode: 'general' },
+    { label: 'Quadratic', eq: 'x^2 - 5*x + 6 = 0', mode: 'general' },
+    { label: 'Hamiltonian', eq: 'H = p^2/(2m) + kx^2/2', mode: 'general' },
+    { label: 'Cubic', eq: 'x^3 - 6x^2 + 11x - 6 = 0', mode: 'general' },
+    { label: 'PDM Quartic', eq: '', req: 'Solve the Schrödinger equation for a system with effective mass of the form m(x)=m₀(1+gx) in a linear potential V(x) = cx. Determine the eigenfunctions and energy spectrum.', mode: 'schrodinger' }
   ];
 
   return (
@@ -221,7 +221,17 @@ ${step.latex}
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900">AI Equation Solver</h1>
-                <p className="text-gray-600 text-sm">Powered by {provider === 'groq' ? 'Groq AI' : 'OpenRouter'} - Extraordinary Detail & Consistency</p>
+                <p className="text-gray-600 text-sm">
+                  Powered by {
+                    provider === 'groq' ? 'Groq AI' :
+                    provider === 'openai' ? 'OpenAI GPT-4o' :
+                    provider === 'gemini' ? 'Google Gemini' :
+                    provider === 'sambanova' ? 'SambaNova Llama 3.1 405B' :
+                    provider === 'nvidia' ? 'NVIDIA NIM Llama 4 Maverick' :
+                    provider === 'cerebras' ? 'Cerebras Llama 3.3 70B' :
+                    'OpenRouter'
+                  } - Extraordinary Detail & Consistency
+                </p>
               </div>
             </div>
           </div>
@@ -282,12 +292,21 @@ ${step.latex}
                     className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 outline-none transition-all text-lg bg-white"
                   >
                     <option value="groq">Groq (Fast & Efficient)</option>
-                    <option value="openrouter">OpenRouter (Advanced Models)</option>
+                    <option value="openai">OpenAI (GPT-4o)</option>
+                    <option value="openrouter">OpenRouter (Multi-Model)</option>
+                    <option value="gemini">Google Gemini (Gemini Flash)</option>
+                    <option value="sambanova">SambaNova (Llama 3.1 405B)</option>
+                    <option value="nvidia">NVIDIA NIM (Llama 4 Maverick 17B)</option>
+                    <option value="cerebras">Cerebras (Llama 3.3 70B)</option>
                   </select>
                   <p className="mt-1 text-xs text-gray-500">
-                    {provider === 'groq'
-                      ? 'Fast responses, good for standard problems'
-                      : 'Advanced models (GPT-4, Claude), best for complex derivations'}
+                    {provider === 'groq' && 'Fast responses, good for standard problems'}
+                    {provider === 'openai' && 'GPT-4o - Excellent reasoning, best for complex derivations'}
+                    {provider === 'openrouter' && 'Access to multiple models (GPT-4, Claude, etc.)'}
+                    {provider === 'gemini' && 'Google Gemini Flash - Fast, efficient, strong math'}
+                    {provider === 'sambanova' && 'Llama 3.1 405B - Powerful open model, excellent for physics'}
+                    {provider === 'nvidia' && 'Llama 4 Maverick 17B - NVIDIA optimized, fast inference'}
+                    {provider === 'cerebras' && 'Llama 3.3 70B - Ultra-fast inference on Cerebras hardware'}
                   </p>
                 </div>
               </div>
@@ -362,7 +381,11 @@ ${step.latex}
                   {examples.map((ex) => (
                     <button
                       key={ex.label}
-                      onClick={() => { setEquation(ex.eq || ''); if (ex.req) setRequestText(ex.req); }}
+                      onClick={() => {
+                        if (ex.mode) setMode(ex.mode);
+                        setEquation(ex.eq || '');
+                        if (ex.req) setRequestText(ex.req);
+                      }}
                       className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg text-sm font-medium transition-colors"
                     >
                       {ex.label}

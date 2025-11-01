@@ -1,0 +1,19 @@
+{
+  "mode": "schrodinger",
+  "provider": "nvidia",
+  "requestText": "Solve the Schrödinger equation for a system with effective mass of the form m(x)=m₀(1+gx) in a linear potential V(x) = cx. Determine the eigenfunctions and energy spectrum.",
+  "variable": "x",
+  "maxIterations": 4,
+  "temperature": 0.1,
+  "detailLevel": "exhaustive",
+  "strategy": "planner",
+  "context": {
+    "type": "Position-dependent mass with linear potential",
+    "mass": "m(x) = m₀(1 + gx)",
+    "potential": "V(x) = cx",
+    "domain": "x ∈ [0, ∞)",
+    "boundary": "ψ(0) = 0, ψ(∞) = 0",
+    "task": "Find eigenfunctions ψ(x) and energy eigenvalues E"
+  }
+}
+
